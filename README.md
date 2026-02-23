@@ -22,10 +22,37 @@ Built as a portfolio project to demonstrate data engineering, analysis, and visu
   <img src="images/kpis.png" width="700">
 </p>
 
+### 🔹 Revenue Trend
+<p align="center">
+  <img src="images/revenue_trend.png" width="700">
+</p>
+
 ### 🔹 ARIMA Forecast
+<p align="center">
+  <img src="images/arima_forecast.png" width="700">
+</p>
+
+### 🔹 Product Performance
 <p align="center">
   <img src="images/performance.png" width="700">
 </p>
+
+### 🔹 Revenue Change
+<p align="center">
+  <img src="images/revenue_change.png" width="700">
+</p>
+
+### 🔹 Anomaly Detection
+<p align="center">
+  <img src="images/anomaly_detection.png" width="700">
+</p>
+
+### 🔹 Recommendations
+<p align="center">
+  <img src="images/recommendations.png" width="700">
+</p>
+
+
 
 ## Architecture
 
