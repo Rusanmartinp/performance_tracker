@@ -1,4 +1,4 @@
-# 📊 E-commerce Performance Tracker
+# E-commerce Performance Tracker
 
 An end-to-end analytics pipeline that simulates a real e-commerce advertising operation — from data generation to an interactive dashboard with forecasting, anomaly detection, and automated recommendations.
 
@@ -6,7 +6,7 @@ Built as a portfolio project to demonstrate data engineering, analysis, and visu
 
 ---
 
-## 🖥️ Dashboard Preview
+## Dashboard Preview
 
 | Section | Description |
 |---|---|
@@ -18,7 +18,7 @@ Built as a portfolio project to demonstrate data engineering, analysis, and visu
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────┐
@@ -48,7 +48,7 @@ Built as a portfolio project to demonstrate data engineering, analysis, and visu
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -62,7 +62,7 @@ Built as a portfolio project to demonstrate data engineering, analysis, and visu
 
 ---
 
-## 🚀 Quick Start (Docker — recommended)
+## Quick Start (Docker — recommended)
 
 **Prerequisites:** Docker and Docker Compose installed.
 
@@ -83,7 +83,7 @@ On first run, the ETL loads 90 days of simulated historical data automatically.
 
 ---
 
-## ⚙️ Manual Setup (without Docker)
+## Manual Setup (without Docker)
 
 ### 1. Create and activate virtual environment
 
@@ -156,7 +156,7 @@ pytest tests/ -v
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 performance_tracker/
@@ -185,7 +185,7 @@ performance_tracker/
 
 ---
 
-## 🔑 Environment Variables
+## Environment Variables
 
 Copy `.env.example` to `.env` and fill in your values:
 
@@ -200,7 +200,7 @@ When running with Docker, `DB_HOST` should be `db` (the service name).
 
 ---
 
-## 💡 Key Design Decisions
+## Key Design Decisions
 
 **Why a simulated API instead of a CSV?**
 Simulating a real HTTP data source makes the ETL more representative of production pipelines, where data comes from external ad platforms (Google Ads, Amazon, Meta).
