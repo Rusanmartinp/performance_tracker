@@ -19,8 +19,6 @@ from analysis.kpi_analysis import (
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 load_dotenv()
-DB_URL = f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
-engine = create_engine(DB_URL)
 
 st.set_page_config(page_title="Performance Tracker", layout="wide")
 st.title("📦 E-commerce Performance Tracker")
@@ -28,6 +26,8 @@ st.title("📦 E-commerce Performance Tracker")
 # ── LOAD DATA ─────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
+    DB_URL = f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
+    engine = create_engine(DB_URL)
     query = """
         SELECT dp.date, p.name, p.category,
                dp.impressions, dp.clicks, dp.ad_spend,

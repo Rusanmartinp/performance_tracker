@@ -11,14 +11,7 @@ import os
 
 # CONFIG
 load_dotenv()
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST")
-DB_NAME = os.getenv("DB_NAME")
-DB_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
-
-engine = create_engine(DB_URL)
 
 # --- Simulation function for trend and seasonality effects ---
 def product_trend_multiplier(product_id, date_str, category):
@@ -46,8 +39,12 @@ def fetch_daily_performance():
     return response.json()
 
 # --- LOAD ---
+def _get_engine():
+    DB_URL = f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
+    return create_engine(DB_URL)
+
 def load_products(products):
-    with engine.begin() as conn:
+    with _get_engine().begin() as conn:
         for p in products:
             conn.execute(
                 text("""
@@ -62,7 +59,7 @@ def load_products(products):
             )
 
 def load_daily_performance(data, product_categories):
-    with engine.begin() as conn:
+    with _get_engine().begin() as conn:
         for d in data:
             # Get category from product_id
             category = product_categories.get(d["product_id"], "Unknown")
