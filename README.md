@@ -18,6 +18,24 @@ Built as a portfolio project to demonstrate data engineering, analysis, and visu
 
 ---
 
+## Dashboard Preview
+
+<p align="center">
+  <img src="images/full_dashboard.png" width="900">
+</p>
+
+---
+
+### 🔹 KPI Cards
+<p align="center">
+  <img src="images/kpi.png" width="700">
+</p>
+
+### 🔹 ARIMA Forecast
+<p align="center">
+  <img src="images/forecast.png" width="700">
+</p>
+
 ## Architecture
 
 ```
