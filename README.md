@@ -16,24 +16,15 @@ Built as a portfolio project to demonstrate data engineering, analysis, and visu
 | Anomaly Detection | Z-score based spike/drop detection over the last 7 days |
 | Recommendations | Automated action table based on 7-day vs prior 7-day trends |
 
----
-
-## Dashboard Preview
-
-<p align="center">
-  <img src="images/full_dashboard.png" width="900">
-</p>
-
----
 
 ### 🔹 KPI Cards
 <p align="center">
-  <img src="images/kpi.png" width="700">
+  <img src="images/kpis.png" width="700">
 </p>
 
 ### 🔹 ARIMA Forecast
 <p align="center">
-  <img src="images/forecast.png" width="700">
+  <img src="images/performance.png" width="700">
 </p>
 
 ## Architecture
