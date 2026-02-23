@@ -2,6 +2,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
+from pmdarima import auto_arima
 
 # Load env
 load_dotenv()
@@ -45,7 +46,6 @@ def forecast_revenue(days=30, product_filter="All", category_filter="All"):
     # --- Step 2: Fit ARIMA model with automatic parameter selection ---
     # auto_arima tests different (p,d,q) combinations and picks the best one
     # using AIC. Much more robust than a fixed order on volatile data.
-    from pmdarima import auto_arima
     model = auto_arima(
         df["y"],
         seasonal=True,
