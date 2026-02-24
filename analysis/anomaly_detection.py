@@ -1,102 +1,91 @@
 import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
-from scipy import stats
 from dotenv import load_dotenv
 import os
 
-# CONFIG
 load_dotenv()
 
-#LOAD DATA
+
+# ---------------------------------------------------------------------------
+# Data loading
+# ---------------------------------------------------------------------------
 
 def load_data():
     DB_URL = f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
     engine = create_engine(DB_URL)
     query = """
-        SELECT
-            dp.date,
-            p.name,
-            dp.impressions,
-            dp.clicks,
-            dp.ad_spend,
-            dp.units_sold,
-            dp.revenue
+        SELECT dp.date, p.name, p.category,
+               dp.impressions, dp.clicks,
+               dp.ad_spend, dp.units_sold, dp.revenue
         FROM daily_performance dp
         JOIN products p ON dp.product_id = p.id
         ORDER BY dp.date;
     """
-    return pd.read_sql(query, engine)
-
-#Z-score calculation
-def calculate_z_scores(series):
-    mean = series.mean()
-    std = series.std()
-
-    if std == 0:
-        return 0
-    latest_value = series.iloc[-1]
-    z_scores = (latest_value - mean) / std
-    return z_scores
+    df = pd.read_sql(query, engine)
+    df["date"] = pd.to_datetime(df["date"])
+    return df
 
 
-#Hypothesis testing
-def generate_hypothesis(df_product):
-    latest = df_product.iloc[-1]
-    baseline = df_product.iloc[:-1]
+# ---------------------------------------------------------------------------
+# Core detection — used by both dashboard and CLI
+# ---------------------------------------------------------------------------
 
-    impressions_change = (
-        (latest['impressions'] - baseline['impressions'].mean()) / baseline['impressions'].mean()
-    )
+def detect_anomalies(df, z_threshold=1.8, window_days=7):
+    """
+    For each product, flag any day in the last `window_days` where
+    revenue deviates more than `z_threshold` standard deviations
+    from that product's historical mean.
 
-    conversion_rate_latest = latest['units_sold'] / max(latest['clicks'], 1) if latest['clicks'] > 0 else 0
-    conversion_rate_baseline = (
-        baseline["units_sold"].sum() / max(baseline["clicks"].sum(), 1) if baseline["clicks"].sum() > 0 else 0
-    )
+    Returns a list of dicts sorted by |Z-Score| descending, ready
+    to be passed directly to pd.DataFrame() for display.
+    """
+    anomalies = []
+    latest_date = df["date"].max()
+    cutoff = latest_date - pd.Timedelta(days=window_days - 1)
 
-    if impressions_change < -0.1:
-        return "Revenue drop likely due to decreased impressions. Consider increasing ad spend or optimizing targeting."
-    elif conversion_rate_latest < conversion_rate_baseline:
-        return "Possible conversion issue. Review product listing, pricing, and ad creatives for potential improvements."
-    else:
-        return "Potential efficiency or bidding change."
-    
-
-    #MAIN ANOMALY DETECTION
-def detect_anomalies(df, threshold = 2):
-    alerts = []
-    for product in df['name'].unique(): 
-        df_product = df[df['name'] == product].sort_values('date')
-        if len(df_product) < 7:
+    for product, df_product in df.groupby("name"):
+        df_product = df_product.sort_values("date")
+        if len(df_product) < 14:
             continue
-        z_revenue = calculate_z_scores(df_product['revenue'])
-        z_roas = calculate_z_scores(
-            df_product['revenue'] / df_product['ad_spend'].replace({0: 1})
-        )
 
-        if abs(z_revenue) > threshold or abs(z_roas) > threshold:
-            hypothesis = generate_hypothesis(df_product)
-            alerts.append({
-                "product": product,
-                "z_revenue": z_revenue,
-                "z_roas": z_roas,
-                "hypothesis": hypothesis
-            })
-    return alerts
+        mean = df_product["revenue"].mean()
+        std  = df_product["revenue"].std()
+        if std == 0:
+            continue
 
-#RUN
+        recent = df_product[df_product["date"] >= cutoff]
+        for _, row in recent.iterrows():
+            z = (row["revenue"] - mean) / std
+            if abs(z) > z_threshold:
+                anomalies.append({
+                    "Product":  product,
+                    "Category": row["category"],
+                    "Date":     row["date"].strftime("%b %d"),
+                    "Revenue":  f"${row['revenue']:,.0f}",
+                    "Expected": f"${mean:,.0f} ± ${std:,.0f}",
+                    "Z-Score":  round(z, 2),
+                    "Type":     "📈 Spike" if z > 0 else "📉 Drop",
+                })
+
+    return sorted(anomalies, key=lambda x: abs(x["Z-Score"]), reverse=True)
+
+
+# ---------------------------------------------------------------------------
+# CLI entry point
+# ---------------------------------------------------------------------------
 
 def run_anomaly_detection():
     df = load_data()
-    alerts = detect_anomalies(df)
-    if not alerts:
+    anomalies = detect_anomalies(df)
+    if not anomalies:
         print("No anomalies detected.")
     else:
-        for alert in alerts:
-            print(f"\nProduct: {alert['product']}")
-            print(f"Z-Score Revenue: {alert['z_revenue']:.2f}")
-            print(f"Z-Score ROAS: {alert['z_roas']:.2f}")
-            print(f"Hypothesis: {alert['hypothesis']}")
+        for a in anomalies:
+            print(f"\n{a['Type']} {a['Product']} on {a['Date']}")
+            print(f"  Revenue:  {a['Revenue']}  (expected {a['Expected']})")
+            print(f"  Z-Score:  {a['Z-Score']}")
+
 
 if __name__ == "__main__":
     run_anomaly_detection()

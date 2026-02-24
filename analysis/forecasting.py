@@ -2,7 +2,6 @@ import pandas as pd
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
-from pmdarima import auto_arima
 
 # Load env
 load_dotenv()
@@ -46,6 +45,7 @@ def forecast_revenue(days=30, product_filter="All", category_filter="All"):
     # --- Step 2: Fit ARIMA model with automatic parameter selection ---
     # auto_arima tests different (p,d,q) combinations and picks the best one
     # using AIC. Much more robust than a fixed order on volatile data.
+    from pmdarima import auto_arima
     model = auto_arima(
         df["y"],
         seasonal=True,
@@ -81,6 +81,59 @@ def forecast_revenue(days=30, product_filter="All", category_filter="All"):
         "yhat_lower": None,
         "yhat_upper": None,
         "is_forecast": False,
+    })
+
+    return pd.concat([history_df, forecast_df], ignore_index=True)
+
+def forecast_revenue_ma(days=30, product_filter="All", category_filter="All", window=7):
+    """
+    Forecast revenue using a Rolling Mean (Moving Average) model.
+    Simpler and faster than ARIMA — useful as a baseline comparison.
+    Returns a dataframe with: ds, yhat, yhat_lower, yhat_upper.
+    """
+    DB_URL = f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
+    engine = create_engine(DB_URL)
+
+    query = """
+        SELECT dp.date, p.name, p.category, dp.revenue
+        FROM daily_performance dp
+        JOIN products p ON dp.product_id = p.id
+        ORDER BY dp.date
+    """
+    df = pd.read_sql(query, engine)
+    df["date"] = pd.to_datetime(df["date"])
+
+    if product_filter and product_filter != "All":
+        df = df[df["name"] == product_filter]
+    elif category_filter and category_filter != "All":
+        df = df[df["category"] == category_filter]
+
+    df = df.groupby("date")["revenue"].sum().reset_index()
+
+    if len(df) < window:
+        raise ValueError(f"Not enough data for MA forecast. Got {len(df)} rows, need at least {window}.")
+
+    # Rolling mean and std over the last `window` days
+    rolling_mean = df["revenue"].rolling(window).mean().iloc[-1]
+    rolling_std  = df["revenue"].rolling(window).std().iloc[-1]
+
+    future_dates = pd.date_range(
+        start=df["date"].iloc[-1] + pd.Timedelta(days=1),
+        periods=days, freq="D"
+    )
+
+    forecast_df = pd.DataFrame({
+        "ds":         future_dates,
+        "yhat":       rolling_mean,
+        "yhat_lower": rolling_mean - 1.28 * rolling_std,  # 80% CI
+        "yhat_upper": rolling_mean + 1.28 * rolling_std,
+    })
+
+    history_df = pd.DataFrame({
+        "ds":         df["date"],
+        "yhat":       df["revenue"],
+        "yhat_lower": None,
+        "yhat_upper": None,
     })
 
     return pd.concat([history_df, forecast_df], ignore_index=True)

@@ -184,6 +184,22 @@ streamlit run dashboard/app.py
 
 ---
 
+## ⚡ Quick Commands (Makefile)
+
+```bash
+make run          # Start API + ETL + Dashboard locally
+make api          # Start only the API
+make etl          # Run the ETL pipeline
+make dashboard    # Launch the dashboard
+make test         # Run all tests
+make docker-up    # Start everything with Docker
+make docker-down  # Stop Docker services
+make docker-reset # Full reset (deletes DB data)
+make clean        # Remove __pycache__ and .pyc files
+```
+
+---
+
 ## 🧪 Running Tests
 
 ```bash
@@ -205,7 +221,6 @@ performance_tracker/
 │   ├── recommendation_engine.py  # 7-day trend comparison + action suggestions
 │   ├── anomaly_detection.py      # Z-score anomaly detection with hypothesis
 │   ├── kpi_analysis.py           # KPI calculations
-│   └── promotion_analysis.py     # Promotion impact analysis
 ├── dashboard/
 │   └── app.py                    # Streamlit dashboard
 ├── tests/

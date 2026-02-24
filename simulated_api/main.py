@@ -25,7 +25,6 @@ PRODUCTS = [
     {"id": 15, "name": "Tablet 10 inch", "price": 299.99, "category": "Electronics"},
 ]
 
-import random
 import math
 
 # Each product has a personality: base demand, price sensitivity, and growth stage
